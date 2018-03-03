@@ -1,0 +1,6 @@
+rootProject.name = 'reactive-geode-example'
+
+include 'reactive-geode-protobuf'
+include 'reactive-geode-server'
+include 'reactive-geode-client'
+include 'reactive-geode-app'

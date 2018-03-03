@@ -1,0 +1,88 @@
+buildscript {
+  repositories {
+    maven {
+      url "https://plugins.gradle.org/m2/"
+      mavenCentral()
+    }
+  }
+  dependencies {
+    classpath 'gradle.plugin.com.google.protobuf:protobuf-gradle-plugin:0.8.4'
+    classpath 'io.spring.gradle:dependency-management-plugin:1.0.4.RELEASE'
+    classpath 'org.springframework.boot:spring-boot-gradle-plugin:2.0.0.RELEASE'
+  }
+}
+
+subprojects {
+  apply plugin: 'java'
+  apply plugin: 'eclipse'
+  apply plugin: 'io.spring.dependency-management'
+  
+  repositories {
+    mavenCentral()
+  }
+  
+  dependencyManagement {
+    imports {
+      mavenBom "io.projectreactor:reactor-bom:Bismuth-RELEASE"
+    }
+  }
+
+  dependencies {
+    compile 'io.netty:netty-all:4.1.22.Final'
+    compile 'org.apache.logging.log4j:log4j-api:2.10.0'
+
+    testCompile 'junit:junit:4.12'
+    testCompile 'org.assertj:assertj-core:3.9.1'
+  }
+
+  sourceSets {
+    main {
+      java {
+        srcDirs 'build/generated/source/proto/main/java'
+      }
+    }
+  }
+}
+
+project(':reactive-geode-protobuf') {
+  apply plugin: 'com.google.protobuf'
+
+  dependencies {
+    compile 'com.google.protobuf:protobuf-java:3.5.1'
+  }
+  
+  protobuf {
+    protoc {
+      artifact = 'com.google.protobuf:protoc:3.5.1'
+    }
+  }
+}
+
+project(':reactive-geode-client') {
+  dependencies {
+    compile project(':reactive-geode-protobuf')
+    compile 'io.projectreactor:reactor-core'
+    testCompile 'io.projectreactor:reactor-test'
+  }
+}
+
+project(':reactive-geode-server') {
+  apply plugin: 'application'
+  mainClassName = 'metatype.server.GeodeServer'
+
+  dependencies {
+    compile project(':reactive-geode-protobuf')
+  }
+}
+ 
+project(':reactive-geode-app') {
+  apply plugin: 'org.springframework.boot'
+
+  dependencies {
+    compile('org.springframework.boot:spring-boot-starter-webflux')
+    testCompile('org.springframework.boot:spring-boot-starter-test')
+    testCompile('io.projectreactor:reactor-test')
+
+    compile project(':reactive-geode-client')
+  }
+}
